@@ -1414,6 +1414,15 @@ function urgencyScore(w) {
   return score;
 }
 
+
+// ── AUTO PRIORITY ──
+function calcPriority(w) {
+  const active = WINES.filter(x => x.botellas > 0);
+  const sorted = [...active].sort((a,b) => urgencyScore(a) - urgencyScore(b));
+  const rank = sorted.findIndex(x => x.id === w.id) + 1;
+  return rank || 99;
+}
+
 // ── SORT ──
 let currentSort = 'valoracion';
 let sortAsc = false;
@@ -1449,7 +1458,7 @@ function sortWines(wines) {
     let va, vb;
     if (currentSort === 'valoracion') { va = a.ptsNum; vb = b.ptsNum; }
     else if (currentSort === 'urgencia') { va = urgencyScore(a); vb = urgencyScore(b); }
-    else if (currentSort === 'prioridad') { va = a.prioridad; vb = b.prioridad; }
+    else if (currentSort === 'prioridad') { va = calcPriority(a); vb = calcPriority(b); }
     else if (currentSort === 'anada') { va = a.añada; vb = b.añada; }
     else if (currentSort === 'nombre') { va = a.nombre.toLowerCase(); vb = b.nombre.toLowerCase(); }
     if (va < vb) return sortAsc ? -1 : 1;
@@ -1554,7 +1563,7 @@ function renderList(wines) {
             <span class="sep">·</span><span>${w.añada}</span>
             <span class="sep">·</span><span>${w.region!=='—'?w.region:'—'}</span>
             <span class="badge ${cls}">${w.categoria}</span>
-            ${debeAbrirYa(w)?'<span class="badge utag">Abrir ya</span>':''}
+            ${(()=>{const e=calcEstadoAuto(w);const color={'Abrir ya':'utag','En tiempo de apertura':'utag','Próximo a probar':'mb','En guarda':''}[e];return color?`<span class="badge ${color}">${e}</span>`:''})()}
             ${w.botellas===0?'<span class="badge est">Sin stock</span>':''}
           </div>
         </div>
@@ -1583,7 +1592,7 @@ function renderList(wines) {
             <div class="detail-row"><span class="dk">Región</span><span class="dv">${w.region}</span></div>
             <div class="detail-row"><span class="dk">Año apertura</span><span class="dv">${w.apertura}</span></div>
             <div class="detail-row"><span class="dk">Ventana</span><span class="dv">${w.ventana||'—'}</span></div>
-            <div class="detail-row"><span class="dk">Prioridad</span><span class="dv">${w.prioridad}</span></div>
+            <div class="detail-row"><span class="dk">Prioridad</span><span class="dv">${calcPriority(w)}</span></div>
             <div class="detail-row"><span class="dk">Estado</span><span class="dv">${calcEstadoAuto(w)}</span></div>
           </div>
           <div class="detail-section">
@@ -1807,7 +1816,7 @@ function renderAlertas() {
   tiers.forEach(tier => {
     const wines = WINES
       .filter(w => w.botellas > 0 && calcEstadoAuto(w) === tier.key)
-      .sort((a,b) => getWindowEnd(a) - getWindowEnd(b))
+      .sort((a,b) => calcPriority(a) - calcPriority(b))
       .slice(0, 4);
     if (!wines.length) return;
     hasAny = true;
