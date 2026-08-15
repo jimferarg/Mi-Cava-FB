@@ -1850,7 +1850,7 @@ function openEditModal(id) {
     'e-region': w.region === '—' ? '' : w.region,
     'e-botellas': w.botellas, 'e-pts': w.pts === '—' ? '' : w.pts,
     'e-apertura': w.apertura, 'e-ventana': w.ventana || '',
-    'e-prioridad': w.prioridad, 'e-estado': calcEstadoAuto(w),
+    'e-prioridad': w.prioridad,
     'e-obs': w.obs || '', 'e-nota': w.nota || '',
     'e-cena': w.maridajeCena || '', 'e-copa': w.maridajeCopa || ''
   };
@@ -1858,7 +1858,6 @@ function openEditModal(id) {
     const el = document.getElementById(id); if (el) el.value = val;
   });
   document.getElementById('e-categoria').value = w.categoria;
-  document.getElementById('e-demora').value = debeAbrirYa(w) ? 'Sí' : 'No';
   document.getElementById('edit-overlay').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
