@@ -1890,11 +1890,11 @@ function saveEditWine() {
   w.categoria   = cat;
   w.ptsNum      = catPts[cat] || w.ptsNum;
   w.pts         = document.getElementById('e-pts').value.trim() || w.pts;
-  w.demora      = document.getElementById('e-demora').value;
+  w.demora      = debeAbrirYa(w) ? 'Sí' : 'No'; // auto-calculated
   w.apertura    = parseInt(document.getElementById('e-apertura').value) || w.apertura;
   w.ventana     = document.getElementById('e-ventana').value.trim();
   w.prioridad   = parseInt(document.getElementById('e-prioridad').value) || w.prioridad;
-  w.estado      = document.getElementById('e-estado').value.trim();
+  w.estado      = calcEstadoAuto(w); // auto-calculated
   w.obs         = document.getElementById('e-obs').value.trim();
   w.nota        = document.getElementById('e-nota').value.trim();
   w.maridajeCena = document.getElementById('e-cena').value.trim();
@@ -2086,13 +2086,7 @@ if (window._fbReady) {
         <label>Pts. Referencia</label>
         <input type="text" id="e-pts">
       </div>
-      <div class="form-group">
-        <label>Fecha de Consumo</label>
-        <select id="e-demora">
-          <option value="No">Guardar</option>
-          <option value="Sí">Abrir ya</option>
-        </select>
-      </div>
+
       <div class="form-group">
         <label>Año de Apertura</label>
         <input type="number" id="e-apertura" min="2020" max="2060">
@@ -2105,10 +2099,7 @@ if (window._fbReady) {
         <label>Prioridad (1=alta)</label>
         <input type="number" id="e-prioridad" min="1" max="99">
       </div>
-      <div class="form-group full">
-        <label>Estado / Uso sugerido</label>
-        <input type="text" id="e-estado">
-      </div>
+
       <div class="form-group full">
         <label>Observación estratégica</label>
         <textarea id="e-obs"></textarea>
