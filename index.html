@@ -1349,7 +1349,7 @@ function autoUpdateDemora() {
 function updateDashboard() {
   const total = WINES.reduce((s,w) => s + w.botellas, 0);
   const avgPts = WINES.length ? (WINES.reduce((s,w) => s + w.ptsNum, 0) / WINES.length).toFixed(1) : '—';
-  const demora = WINES.filter(w => w.demora === 'Sí').reduce((s,w) => s + w.botellas, 0);
+  const demora = WINES.filter(w => debeAbrirYa(w)).reduce((s,w) => s + w.botellas, 0);
   const guarda = WINES.filter(w => w.apertura >= 2029).reduce((s,w) => s + w.botellas, 0);
   document.getElementById('kpi-total').textContent  = total;
   document.getElementById('kpi-val').textContent    = avgPts;
@@ -1392,8 +1392,8 @@ function getFiltered() {
   const fc = document.getElementById('f-cat').value;
   return WINES.filter(w => {
     if (fv && !w.varietal.includes(fv)) return false;
-    if (fd === 'si' && w.demora !== 'Sí') return false;
-    if (fd === 'no' && w.demora !== 'No') return false;
+    if (fd === 'si' && !debeAbrirYa(w)) return false;
+    if (fd === 'no' && debeAbrirYa(w)) return false;
     if (fa && w.apertura != fa) return false;
     if (fp && w.prioridad != fp) return false;
     if (fc && w.categoria !== fc) return false;
@@ -1507,7 +1507,7 @@ function toggleOracle(tipo) {
   const cc = document.getElementById('oracle-cards');
   cc.innerHTML = top4.map(w => {
     const cls = CAT_CLASS[w.categoria] || 'est';
-    const abrirYa = w.demora === 'Sí' ? '<span class="badge utag" style="margin-left:4px">Abrir ya</span>' : '';
+    const abrirYa = debeAbrirYa(w) ? '<span class="badge utag" style="margin-left:4px">Abrir ya</span>' : '';
     return `<div class="oracle-card ${cls}">
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:5px">
         <div class="o-badge ${cls}" style="margin-bottom:0">${w.categoria}</div>${abrirYa}
@@ -1542,7 +1542,7 @@ function renderList(wines) {
   }
   list.innerHTML = wines.map(w => {
     const cls = CAT_CLASS[w.categoria] || 'est';
-    const urgente = w.demora==='Sí' ? ' urgente' : '';
+    const urgente = debeAbrirYa(w) ? ' urgente' : '';
     const emptyStock = w.botellas===0 ? ' empty-stock' : '';
     return `<div class="wine-card${urgente}${emptyStock}" id="card-${w.id}">
       <div class="wine-header" onclick="toggleCard('${w.id}')">
@@ -1554,7 +1554,7 @@ function renderList(wines) {
             <span class="sep">·</span><span>${w.añada}</span>
             <span class="sep">·</span><span>${w.region!=='—'?w.region:'—'}</span>
             <span class="badge ${cls}">${w.categoria}</span>
-            ${w.demora==='Sí'?'<span class="badge utag">Abrir ya</span>':''}
+            ${debeAbrirYa(w)?'<span class="badge utag">Abrir ya</span>':''}
             ${w.botellas===0?'<span class="badge est">Sin stock</span>':''}
           </div>
         </div>
@@ -1584,7 +1584,7 @@ function renderList(wines) {
             <div class="detail-row"><span class="dk">Año apertura</span><span class="dv">${w.apertura}</span></div>
             <div class="detail-row"><span class="dk">Ventana</span><span class="dv">${w.ventana||'—'}</span></div>
             <div class="detail-row"><span class="dk">Prioridad</span><span class="dv">${w.prioridad}</span></div>
-            <div class="detail-row"><span class="dk">Estado</span><span class="dv">${w.estado||'—'}</span></div>
+            <div class="detail-row"><span class="dk">Estado</span><span class="dv">${calcEstadoAuto(w)}</span></div>
           </div>
           <div class="detail-section">
             <h4>Valoración</h4>
