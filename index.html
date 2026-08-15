@@ -431,10 +431,7 @@ header h1{font-family:'Inter',sans-serif;font-weight:600;font-size:22px;letter-s
         <label>Año de Apertura</label>
         <select id="f-anio" onchange="applyFilters()"><option value="">Todos</option></select>
       </div>
-      <div class="filter-group">
-        <label>Prioridad</label>
-        <select id="f-prioridad" onchange="applyFilters()"><option value="">Todas</option></select>
-      </div>
+
       <div class="filter-group">
         <label>Valoración</label>
         <select id="f-cat" onchange="applyFilters()">
@@ -458,9 +455,8 @@ header h1{font-family:'Inter',sans-serif;font-weight:600;font-size:22px;letter-s
 
   <div class="sort-bar">
     <span class="sort-label">Ordenar</span>
-    <button class="sort-btn" id="sort-urgencia" onclick="setSort('urgencia')">Urgencia</button>
+    <button class="sort-btn" id="sort-urgencia" onclick="setSort('urgencia')">Prioridad</button>
     <button class="sort-btn active" id="sort-valoracion" onclick="setSort('valoracion')">Valoración</button>
-    <button class="sort-btn" id="sort-prioridad" onclick="setSort('prioridad')">Prioridad</button>
     <button class="sort-btn" id="sort-anada" onclick="setSort('anada')">Añada</button>
     <button class="sort-btn" id="sort-nombre" onclick="setSort('nombre')">Nombre</button>
     <button class="sort-dir" id="sort-dir-btn" onclick="toggleSortDir()" title="Cambiar dirección">↓</button>
@@ -1378,24 +1374,21 @@ function buildFilters() {
   fa.innerHTML = '<option value="">Todos</option>';
   anios.forEach(a => { const o = document.createElement('option'); o.value=a; o.textContent=a; fa.appendChild(o); });
 
-  const prios = [...new Set(WINES.map(w => w.prioridad))].sort((a,b)=>a-b);
-  const fp = document.getElementById('f-prioridad');
-  fp.innerHTML = '<option value="">Todas</option>';
-  prios.forEach(p => { const o = document.createElement('option'); o.value=p; o.textContent=p; fp.appendChild(o); });
+
 }
 
 function getFiltered() {
   const fv = document.getElementById('f-varietal').value;
   const fd = document.getElementById('f-demora').value;
   const fa = document.getElementById('f-anio').value;
-  const fp = document.getElementById('f-prioridad').value;
+
   const fc = document.getElementById('f-cat').value;
   return WINES.filter(w => {
     if (fv && !w.varietal.includes(fv)) return false;
     if (fd === 'si' && !debeAbrirYa(w)) return false;
     if (fd === 'no' && debeAbrirYa(w)) return false;
     if (fa && w.apertura != fa) return false;
-    if (fp && w.prioridad != fp) return false;
+  
     if (fc && w.categoria !== fc) return false;
     return true;
   });
@@ -1427,7 +1420,7 @@ function calcPriority(w) {
 let currentSort = 'valoracion';
 let sortAsc = false;
 
-const SORT_DEFAULTS = { valoracion: false, urgencia: true, prioridad: true, anada: false, nombre: true };
+const SORT_DEFAULTS = { valoracion: false, urgencia: true, anada: false, nombre: true };
 
 function setSort(key) {
   if (currentSort === key) {
@@ -1477,7 +1470,7 @@ function applyFilters() {
 }
 
 function resetFilters() {
-  ['f-varietal','f-demora','f-anio','f-prioridad','f-cat'].forEach(id => document.getElementById(id).value='');
+  ['f-varietal','f-demora','f-anio','f-cat'].forEach(id => document.getElementById(id).value='');
   applyFilters();
 }
 
@@ -1553,6 +1546,10 @@ function renderList(wines) {
     const cls = CAT_CLASS[w.categoria] || 'est';
     const urgente = debeAbrirYa(w) ? ' urgente' : '';
     const emptyStock = w.botellas===0 ? ' empty-stock' : '';
+    const estadoW = calcEstadoAuto(w);
+    const estadoColor = {'Abrir ya':'utag','En tiempo de apertura':'utag','Próximo a probar':'mb'}[estadoW] || '';
+    const estadoBadge = estadoColor ? `<span class="badge ${estadoColor}">${estadoW}</span>` : '';
+    const prioW = calcPriority(w);
     return `<div class="wine-card${urgente}${emptyStock}" id="card-${w.id}">
       <div class="wine-header" onclick="toggleCard('${w.id}')">
         <div class="wine-cat-bar ${cls}"></div>
@@ -1563,7 +1560,8 @@ function renderList(wines) {
             <span class="sep">·</span><span>${w.añada}</span>
             <span class="sep">·</span><span>${w.region!=='—'?w.region:'—'}</span>
             <span class="badge ${cls}">${w.categoria}</span>
-            ${(()=>{const e=calcEstadoAuto(w);const color={'Abrir ya':'utag','En tiempo de apertura':'utag','Próximo a probar':'mb','En guarda':''}[e];return color?`<span class="badge ${color}">${e}</span>`:''})()}
+            ${estadoBadge}
+            <span class="sep">·</span><span style="font-size:10px;color:var(--text3)">P${prioW}</span>
             ${w.botellas===0?'<span class="badge est">Sin stock</span>':''}
           </div>
         </div>
